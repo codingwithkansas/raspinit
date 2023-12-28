@@ -1,0 +1,12 @@
+#cloud-config
+
+# This is an example cloud-init 'user-data' configuration file.
+
+timezone: America/New_York
+hostname: raspicloudinit
+fqdn: raspicloudinit.local
+disable_root: false
+ssh_authorized_keys:
+  - ssh-rsa ...
+ssh:
+  emit_keys_to_console: false

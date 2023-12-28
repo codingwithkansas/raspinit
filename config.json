@@ -1,0 +1,5 @@
+{
+  "output_filename": "raspinit-ubuntu-22.04.3-arm64",
+  "base_image_url": "<source .img or .img.xz URL path to download>",
+  "base_image": "<source .img or .img.xz file path>"
+}

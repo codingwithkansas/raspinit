@@ -1,0 +1,7 @@
+# This is an example cloud-init 'network-config' configuration file.
+
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
