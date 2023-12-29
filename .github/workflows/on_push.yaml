@@ -21,4 +21,4 @@ jobs:
             image: raspinit-builder-ctx
             options: --privileged --user=root --entrypoint /bin/sh -v ${{ github.workspace }}:/src
             run: |
-                make build
+                make test
