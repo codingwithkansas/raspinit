@@ -24,7 +24,5 @@ jobs:
           image: "${{ steps.build_ctx_version.outputs.build_ctx_version }}"
           options: --privileged --user=root -v ${{ github.workspace }}:/src -e CI="true"
           shell: bash
-          env:
-            CI: "true"
           run: |
               make test
