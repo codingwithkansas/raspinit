@@ -1,4 +1,4 @@
-name: Build Branch
+name: Branch Testing
 run-name: ${{ github.actor }} is testing out building with GitHub Actions 🚀
 on: [push]
 jobs:
@@ -19,6 +19,6 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
             image: raspinit-builder-ctx
-            options: --privileged --user=root --entrypoint /bin/sh -v ${{ github.workspace }}:/src
+            options: --privileged --user=root --entrypoint /bin/bash -v ${{ github.workspace }}:/src
             run: |
                 make test
