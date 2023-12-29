@@ -131,7 +131,7 @@ function fetch_source_image {
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 RPI_IMAGE_URL="$(cat $PWD/config.json | jq '.base_image_url' | tr -d '\"')"
                 curl --output "$PWD/dist/rpi.img.xz" "$RPI_IMAGE_URL"
-                if [[ "$CI"="true" ]];
+                if [[ "$CI" == "true" ]];
                 then
                     xz -d -v "$PWD/dist/rpi.img.xz"
                 else
@@ -152,7 +152,7 @@ function fetch_source_image {
                 log_indent "$(log "Compressed image is defined and exists" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 cp "$PWD/$RPI_IMAGE_FILE" "$PWD/dist/rpi.img.xz"
-                if [[ "$CI"="true" ]];
+                if [[ "$CI" == "true" ]];
                 then
                     xz -d -v "$PWD/dist/rpi.img.xz"
                 else
@@ -174,7 +174,7 @@ function build {
     PWD="$1"
     BUILD_CONTEXT_DOCKER_IMAGETAG="$(get_build_ctx_docker_imagetag "$PWD")"
     log_header "Initializing docker build environment"
-    if [[ "$CI"="true" ]];
+    if [[ "$CI" == "true" ]];
     then
         make DOCKER_CTX_build_image
     else
