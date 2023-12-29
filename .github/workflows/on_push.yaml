@@ -11,9 +11,7 @@ jobs:
           - name: Run the build process with Docker
             uses: addnab/docker-run-action@v3
             with:
-                image: aschmelyun/cleaver:latest
-                options: -v ${{ github.workspace }}:/var/www
+                image: Dockerfile
+                options: --privileged --user=root --entrypoint /bin/sh -v ${{ github.workspace }}:/src
                 run: |
-                    composer install
-                    npm install
-                    npm run production
+                    make build
