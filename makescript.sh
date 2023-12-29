@@ -3,14 +3,14 @@ BUILD_CONTEXT_DOCKER_IMAGE="raspinit-builder-ctx"
 
 # Utility Functions
 function is_ci {
-    if [[ "$CI"=="true" ]];
+    if [[ "$CI" == "true" ]];
     then
-        exit 0
+        printf "true"
     elif [[ ! -f "$(which docker)" ]];
     then
-        exit 0
+        printf "true"
     else
-        exit 1
+        printf "false"
     fi
 }
 function get_build_ctx_docker_imagetag {
@@ -96,7 +96,7 @@ function unmount_boot_partition {
 # Make Targets
 function build_image {
     IMAGE_ID="$(uuidgen)"
-    OUTPUT_FILENAME="$(cat $PWD/config.json | jq '.output_filename' | tr -d '\"')"
+    OUTPUT_FILENAME="$(cat config.json | jq '.output_filename' | tr -d '\"')"
     log_header "Building image '$OUTPUT_FILENAME' with image ID: $IMAGE_ID"
 
     mount_boot_partition
@@ -147,7 +147,7 @@ function fetch_source_image {
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 RPI_IMAGE_URL="$(cat $PWD/config.json | jq '.base_image_url' | tr -d '\"')"
                 curl --output "$PWD/dist/rpi.img.xz" "$RPI_IMAGE_URL"
-                if is_ci;
+                if [[ "$(is_ci)" == "true" ]];
                 then
                     xz -d -v "$PWD/dist/rpi.img.xz"
                 else
@@ -168,7 +168,7 @@ function fetch_source_image {
                 log_indent "$(log "Compressed image is defined and exists" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 cp "$PWD/$RPI_IMAGE_FILE" "$PWD/dist/rpi.img.xz"
-                if is_ci;
+                if [[ "$(is_ci)" == "true" ]];
                 then
                     xz -d -v "$PWD/dist/rpi.img.xz"
                 else
@@ -190,10 +190,12 @@ function build {
     PWD="$1"
     BUILD_CONTEXT_DOCKER_IMAGETAG="$(get_build_ctx_docker_imagetag "$PWD")"
     log_header "Initializing docker build environment"
-    if is_ci;
+    if [[ "$(is_ci)" == "true" ]];
     then
+        log_header "Initializing docker build environmenta"
         make DOCKER_CTX_build_image
     else
+        log_header "Initializing docker build environmentb"
         if [[ "$(docker images -q "$BUILD_CONTEXT_DOCKER_IMAGETAG" 2> /dev/null)" == "" ]]; then
             log_indent "Docker image for builder '"$BUILD_CONTEXT_DOCKER_IMAGETAG"' does not exist. Creating now."
             docker build -t "$BUILD_CONTEXT_DOCKER_IMAGETAG" .  > /dev/null
