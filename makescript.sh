@@ -131,7 +131,12 @@ function fetch_source_image {
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 RPI_IMAGE_URL="$(cat $PWD/config.json | jq '.base_image_url' | tr -d '\"')"
                 curl --output "$PWD/dist/rpi.img.xz" "$RPI_IMAGE_URL"
-                docker run --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "xz -d -v /src/dist/rpi.img.xz"
+                if [[ "$CI"="true" ]];
+                then
+                    xz -d -v "$PWD/dist/rpi.img.xz"
+                else
+                    docker run --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "xz -d -v /src/dist/rpi.img.xz"
+                fi
             else
                 log_indent "$(log "ImageURL is defined and will be retrieved" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
@@ -147,7 +152,12 @@ function fetch_source_image {
                 log_indent "$(log "Compressed image is defined and exists" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 cp "$PWD/$RPI_IMAGE_FILE" "$PWD/dist/rpi.img.xz"
-                docker run --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "xz -d -v /src/dist/rpi.img.xz"
+                if [[ "$CI"="true" ]];
+                then
+                    xz -d -v "$PWD/dist/rpi.img.xz"
+                else
+                    docker run --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "xz -d -v /src/dist/rpi.img.xz"
+                fi
             else
                 log_indent "$(log "Image is defined and exists" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
@@ -164,12 +174,16 @@ function build {
     PWD="$1"
     BUILD_CONTEXT_DOCKER_IMAGETAG="$(get_build_ctx_docker_imagetag "$PWD")"
     log_header "Initializing docker build environment"
-    if [[ "$(docker images -q "$BUILD_CONTEXT_DOCKER_IMAGETAG" 2> /dev/null)" == "" ]]; then
-        log_indent "Docker image for builder '"$BUILD_CONTEXT_DOCKER_IMAGETAG"' does not exist. Creating now."
-        docker build -t "$BUILD_CONTEXT_DOCKER_IMAGETAG" .  > /dev/null
+    if [[ "$CI"="true" ]];
+    then
+        make DOCKER_CTX_build_image
+    else
+        if [[ "$(docker images -q "$BUILD_CONTEXT_DOCKER_IMAGETAG" 2> /dev/null)" == "" ]]; then
+            log_indent "Docker image for builder '"$BUILD_CONTEXT_DOCKER_IMAGETAG"' does not exist. Creating now."
+            docker build -t "$BUILD_CONTEXT_DOCKER_IMAGETAG" .  > /dev/null
+        fi
+        docker run --privileged --user=root --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "make DOCKER_CTX_build_image"
     fi
-	docker run --privileged --user=root --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "make DOCKER_CTX_build_image"
-    echo ""
 }
 function clean {
     PWD="$1"
