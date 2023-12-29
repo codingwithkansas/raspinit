@@ -21,10 +21,10 @@ jobs:
       - name: Run the test target within build context docker container
         uses: addnab/docker-run-action@v3
         with:
-            image: "${{ steps.build_ctx_version.outputs.build_ctx_version }}"
-            options: --privileged --user=root -v ${{ github.workspace }}:/src -e CI="true"
-            shell: bash
-            env:
-              CI: "true"
-            run: |
-                make test
+          image: "${{ steps.build_ctx_version.outputs.build_ctx_version }}"
+          options: --privileged --user=root -v ${{ github.workspace }}:/src -e CI="true"
+          shell: bash
+          env:
+            CI: "true"
+          run: |
+              make test
