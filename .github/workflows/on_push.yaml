@@ -22,6 +22,9 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
             image: "${{ steps.build_ctx_version.outputs.build_ctx_version }}"
-            options: --privileged --user=root --entrypoint /bin/bash -v ${{ github.workspace }}:/src -e CI="true"
+            options: --privileged --user=root -v ${{ github.workspace }}:/src -e CI="true"
+            shell: bash
+            env:
+              CI: "true"
             run: |
                 make test
