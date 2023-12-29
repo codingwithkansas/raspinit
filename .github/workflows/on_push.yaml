@@ -2,16 +2,23 @@ name: Build Branch
 run-name: ${{ github.actor }} is testing out building with GitHub Actions 🚀
 on: [push]
 jobs:
-    compile:
-        name: Compile site assets
-        runs-on: ubuntu-latest
-        steps:
-          - name: Check out the repo
-            uses: actions/checkout@v2
-          - name: Run the build process with Docker
-            uses: addnab/docker-run-action@v3
-            with:
-                image: Dockerfile
-                options: --privileged --user=root --entrypoint /bin/sh -v ${{ github.workspace }}:/src
-                run: |
-                    make build
+  build:
+    name: Compile site assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Build docker image
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: "raspinit-builder-ctx"
+      - name: Run the build process with Docker
+        uses: addnab/docker-run-action@v3
+        with:
+            image: raspinit-builder-ctx
+            options: --privileged --user=root --entrypoint /bin/sh -v ${{ github.workspace }}:/src
+            run: |
+                make build
