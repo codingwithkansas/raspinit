@@ -4,7 +4,7 @@ BUILD_CONTEXT_DOCKER_IMAGE="raspinit-builder-ctx"
 # Utility Functions
 function get_build_ctx_docker_imagetag {
     PWD="$1"
-    TAG=`cat "$PWD/Dockerfile" | grep "VERSION" | sed 's/ENV VERSION=//' | tr -d '\"'`
+    TAG=`cat "$PWD/Dockerfile" | grep "ENV" | grep "VERSION" | sed 's/ENV VERSION=//' | tr -d '\"'`
     printf "$BUILD_CONTEXT_DOCKER_IMAGE-$TAG"
 }
 function ctrl_ansi_bold {
@@ -77,7 +77,7 @@ function unmount_boot_partition {
     rm -rf /src/dist/tmp.mnt--boot
 }
 
-# Make Entrypoints
+# Make Targets
 function build_image {
     IMAGE_ID="$(uuidgen)"
     OUTPUT_FILENAME="$(cat $PWD/config.json | jq '.output_filename' | tr -d '\"')"
