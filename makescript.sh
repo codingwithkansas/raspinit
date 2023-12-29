@@ -1,4 +1,12 @@
+# Constants
+BUILD_CONTEXT_DOCKER_IMAGE="raspinit-builder-ctx"
+
 # Utility Functions
+function get_build_ctx_docker_imagetag {
+    PWD="$1"
+    TAG=`cat "$PWD/Dockerfile" | grep "VERSION" | sed 's/ENV VERSION=//' | tr -d '\"'`
+    printf "$BUILD_CONTEXT_DOCKER_IMAGE-$TAG"
+}
 function ctrl_ansi_bold {
     printf '%s%s%s' $(printf '\033[1m') "$1" $(printf '\033[0m')
 }
@@ -103,6 +111,7 @@ function build_image {
 }
 function fetch_source_image {
     PWD="$1"
+    BUILD_CONTEXT_DOCKER_IMAGETAG="$(get_build_ctx_docker_imagetag "$PWD")"
     log_header "Validating source image"
     RPI_IMAGE_FILE="$(cat $PWD/config.json | jq '.base_image' | tr -d '\"')"
     RPI_IMAGE_URL="$(cat $PWD/config.json | jq '.base_image_url' | tr -d '\"')"
@@ -122,7 +131,7 @@ function fetch_source_image {
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 RPI_IMAGE_URL="$(cat $PWD/config.json | jq '.base_image_url' | tr -d '\"')"
                 curl --output "$PWD/dist/rpi.img.xz" "$RPI_IMAGE_URL"
-                docker run --entrypoint /bin/sh -it -v "$PWD:/src" netboot-builder -c "xz -d -v /src/dist/rpi.img.xz"
+                docker run --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "xz -d -v /src/dist/rpi.img.xz"
             else
                 log_indent "$(log "ImageURL is defined and will be retrieved" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
@@ -138,7 +147,7 @@ function fetch_source_image {
                 log_indent "$(log "Compressed image is defined and exists" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
                 cp "$PWD/$RPI_IMAGE_FILE" "$PWD/dist/rpi.img.xz"
-                docker run --entrypoint /bin/sh -it -v "$PWD:/src" netboot-builder -c "xz -d -v /src/dist/rpi.img.xz"
+                docker run --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "xz -d -v /src/dist/rpi.img.xz"
             else
                 log_indent "$(log "Image is defined and exists" ctrl_ansi_green)"
                 mkdir "$PWD/dist" || echo "Build 'dist' directory already exists"
@@ -153,22 +162,24 @@ function fetch_source_image {
 }
 function build {
     PWD="$1"
+    BUILD_CONTEXT_DOCKER_IMAGETAG="$(get_build_ctx_docker_imagetag "$PWD")"
     log_header "Initializing docker build environment"
-    if [[ "$(docker images -q netboot-builder 2> /dev/null)" == "" ]]; then
-        log_indent "Docker image for builder 'netboot-builder' does not exist. Creating now."
-        docker build -t "netboot-builder" .  > /dev/null
+    if [[ "$(docker images -q "$BUILD_CONTEXT_DOCKER_IMAGETAG" 2> /dev/null)" == "" ]]; then
+        log_indent "Docker image for builder '"$BUILD_CONTEXT_DOCKER_IMAGETAG"' does not exist. Creating now."
+        docker build -t "$BUILD_CONTEXT_DOCKER_IMAGETAG" .  > /dev/null
     fi
-	docker run --privileged --user=root --entrypoint /bin/sh -it -v "$PWD:/src" netboot-builder -c "make DOCKER_CTX_build_image"
+	docker run --privileged --user=root --entrypoint /bin/sh -it -v "$PWD:/src" "$BUILD_CONTEXT_DOCKER_IMAGETAG" -c "make DOCKER_CTX_build_image"
     echo ""
 }
 function clean {
     PWD="$1"
     CLEAN_ACTION="$2"
+    BUILD_CONTEXT_DOCKER_IMAGETAG="$(get_build_ctx_docker_imagetag "$PWD")"
     log_header "Cleaning previous builds located at $PWD/dist"
 	rm -rf "$PWD/dist" > /dev/null
     if [[ "$CLEAN_ACTION" == "all" ]];
     then
-        log_indent "Removing cached build context container image 'netboot-builder'"
-        docker image rm netboot-builder --force > /dev/null
+        log_indent "Removing cached build context container image '"$BUILD_CONTEXT_DOCKER_IMAGETAG"'"
+        docker image rm "$BUILD_CONTEXT_DOCKER_IMAGETAG" --force > /dev/null
     fi
 }

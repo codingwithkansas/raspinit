@@ -10,4 +10,6 @@ RUN apk add \
     rsync
 
 WORKDIR /src
+
+ENV VERSION="0.1.0"
 ENTRYPOINT ["/bin/sh", "-c"]
