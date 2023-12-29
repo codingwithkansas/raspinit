@@ -2,20 +2,20 @@ name: Branch Testing
 run-name: ${{ github.actor }} is testing out building with GitHub Actions 🚀
 on: [push]
 jobs:
-  build:
-    name: Compile site assets
+  test:
+    name: Run all tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Build docker image
+      - name: Build the builder context docker image
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
           context: .
           file: ./Dockerfile
           push: false
           tags: "raspinit-builder-ctx"
-      - name: Run the build process with Docker
+      - name: Run the test target within build context docker container
         uses: addnab/docker-run-action@v3
         with:
             image: raspinit-builder-ctx
