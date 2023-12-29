@@ -8,13 +8,16 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+      - name: Compute Docker Tag
+        id: build_ctx_version
+        run: echo "::set-output name=build_ctx_version::$(source makescript.sh; get_build_ctx_docker_imagetag)"
       - name: Build the builder context docker image
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
           context: .
           file: ./Dockerfile
           push: false
-          tags: "raspinit-builder-ctx"
+          tags: "raspinit-builder-ctx-${{ steps.build_ctx_version.outputs.build_ctx_version }}"
       - name: Run the test target within build context docker container
         uses: addnab/docker-run-action@v3
         with:

@@ -4,7 +4,12 @@ BUILD_CONTEXT_DOCKER_IMAGE="raspinit-builder-ctx"
 # Utility Functions
 function get_build_ctx_docker_imagetag {
     PWD="$1"
-    TAG=`cat "$PWD/Dockerfile" | grep "ENV" | grep "VERSION" | sed 's/ENV VERSION=//' | tr -d '\"'`
+    if [[ ! -z "$PWD" ]];
+    then
+        TAG=`cat "$PWD/Dockerfile" | grep "ENV" | grep "VERSION" | sed 's/ENV VERSION=//' | tr -d '\"'`
+    else
+        TAG=`cat "Dockerfile" | grep "ENV" | grep "VERSION" | sed 's/ENV VERSION=//' | tr -d '\"'`
+    fi
     printf "$BUILD_CONTEXT_DOCKER_IMAGE-$TAG"
 }
 function ctrl_ansi_bold {
