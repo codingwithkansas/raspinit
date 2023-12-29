@@ -17,7 +17,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: false
-          tags: "raspinit-builder-ctx-${{ steps.build_ctx_version.outputs.build_ctx_version }}"
+          tags: "${{ steps.build_ctx_version.outputs.build_ctx_version }}"
       - name: Run the test target within build context docker container
         uses: addnab/docker-run-action@v3
         with:
